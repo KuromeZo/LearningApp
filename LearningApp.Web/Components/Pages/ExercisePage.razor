@@ -3,6 +3,7 @@
 @using LearningApp.Web.Services
 @using LearningApp.API.DTOs
 @inject ApiService ApiService
+@rendermode InteractiveServer
 
 <div class="container-fluid">
     @if (exercise == null)
@@ -34,7 +35,6 @@
                     <span class="badge bg-info fs-6">Сложность: @exercise.Difficulty</span>
                 </div>
 
-                <!-- Debug Info -->
                 @if (!string.IsNullOrEmpty(debugMessage))
                 {
                     <div class="alert alert-info">
@@ -78,13 +78,14 @@
                             <div class="card-body">
                                 <div class="form-group mb-3">
                                     <textarea @bind="userCode" 
+                                              @bind:event="oninput"
                                               class="form-control font-monospace" 
                                               rows="12" 
                                               placeholder="@GetPlaceholder()"></textarea>
                                 </div>
 
-                                <div class="d-flex gap-2 mb-3">
-                                    <button class="btn btn-success" @onclick="CheckSolution" disabled="@isChecking">
+                                <div class="d-flex gap-2 mb-3 flex-wrap">
+                                    <button type="button" class="btn btn-success" @onclick="CheckSolution" disabled="@isChecking">
                                         @if (isChecking)
                                         {
                                             <span class="spinner-border spinner-border-sm me-2"></span>
@@ -92,15 +93,15 @@
                                         🔍 Проверить
                                     </button>
                                     
-                                    <button class="btn btn-secondary" @onclick="ResetCode">
+                                    <button type="button" class="btn btn-secondary" @onclick="ResetCode">
                                         🔄 Сброс
                                     </button>
                                     
-                                    <button class="btn btn-warning" @onclick="ShowHint">
+                                    <button type="button" class="btn btn-warning" @onclick="ShowHint">
                                         💡 Подсказка
                                     </button>
 
-                                    <button class="btn btn-info btn-sm" @onclick="TestButtons">
+                                    <button type="button" class="btn btn-info btn-sm" @onclick="TestButtons">
                                         🧪 Тест
                                     </button>
                                 </div>
@@ -173,20 +174,24 @@
     private async Task CheckSolution()
     {
         debugMessage = "Начинаем проверку решения...";
+        await InvokeAsync(StateHasChanged);
         
         if (string.IsNullOrWhiteSpace(userCode)) 
         {
             debugMessage = "Код пустой!";
+            await InvokeAsync(StateHasChanged);
             return;
         }
         
         isChecking = true;
         result = null;
-        StateHasChanged();
+        await InvokeAsync(StateHasChanged);
 
         try
         {
             debugMessage = "Отправляем код на проверку...";
+            await InvokeAsync(StateHasChanged);
+            
             result = await ApiService.SubmitSolutionAsync(ExerciseId, userCode);
             debugMessage = $"Результат получен: {result.Message}";
         }
@@ -202,30 +207,30 @@
         finally
         {
             isChecking = false;
-            StateHasChanged();
+            await InvokeAsync(StateHasChanged);
         }
     }
 
-    private void ResetCode()
+    private async Task ResetCode()
     {
         debugMessage = "Сброс кода...";
         userCode = exercise?.StarterCode ?? "";
         result = null;
         showHint = false;
-        StateHasChanged();
+        await InvokeAsync(StateHasChanged);
     }
 
-    private void ShowHint()
+    private async Task ShowHint()
     {
         debugMessage = "Показываем подсказку...";
         showHint = true;
-        StateHasChanged();
+        await InvokeAsync(StateHasChanged);
     }
 
-    private void TestButtons()
+    private async Task TestButtons()
     {
         debugMessage = $"Тест кнопок - время: {DateTime.Now:HH:mm:ss}";
-        StateHasChanged();
+        await InvokeAsync(StateHasChanged);
     }
 
     private string GetHint()
