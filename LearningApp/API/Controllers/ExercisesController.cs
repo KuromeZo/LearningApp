@@ -1,6 +1,8 @@
 ﻿using LearningApp.API.DTOs;
+using LearningApp.Core.Models;
 using LearningApp.Data;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace LearningApp.API.Controllers;
 
@@ -30,5 +32,17 @@ public class ExercisesController : ControllerBase
             Message = isCorrect ? "Правильно!" : "Попробуйте ещё раз"
         });
     }
-    
+
+    [HttpGet("{id}")]
+    public async Task<ActionResult<Exercise>> GetExercise(int id)
+    {
+        var exercise = await _context.Exercises
+            .Include(e => e.Topic)
+            .FirstOrDefaultAsync(e => e.Id == id);
+        
+        if (exercise == null) return NotFound();
+        
+        return Ok(exercise);
+    }
+
 }

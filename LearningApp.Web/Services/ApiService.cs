@@ -30,5 +30,10 @@ public class ApiService
         
         return await response.Content.ReadFromJsonAsync<ExerciseResult>() ?? new();
     }
+
+    public async Task<Exercise?> GetExerciseAsync(int id)
+    {
+        return await _httpClient.GetFromJsonAsync<Exercise>($"api/exercises/{id}");
+    }
 }
 

@@ -26,7 +26,7 @@ public class TopicsController : ControllerBase
     }
 
     [HttpGet("{id}")]
-    public async Task<ActionResult<List<Topic>>> GetTopics(int id)
+    public async Task<ActionResult<Topic>> GetTopics(int id)
     {
         var topic = await _context.Topics
             .Include(t => t.Exercises)
