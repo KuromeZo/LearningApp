@@ -85,5 +85,3 @@ C:\Users\pc\RiderProjects\LearningApp\LearningApp.Web\obj\Debug\net8.0\refint\Le
 C:\Users\pc\RiderProjects\LearningApp\LearningApp.Web\obj\Debug\net8.0\LearningApp.Web.pdb
 C:\Users\pc\RiderProjects\LearningApp\LearningApp.Web\obj\Debug\net8.0\LearningApp.Web.genruntimeconfig.cache
 C:\Users\pc\RiderProjects\LearningApp\LearningApp.Web\obj\Debug\net8.0\ref\LearningApp.Web.dll
-C:\Users\pc\RiderProjects\LearningApp\LearningApp.Web\obj\Debug\net8.0\LearningApp.Web.RazorAssemblyInfo.cache
-C:\Users\pc\RiderProjects\LearningApp\LearningApp.Web\obj\Debug\net8.0\LearningApp.Web.RazorAssemblyInfo.cs
