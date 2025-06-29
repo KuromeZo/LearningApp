@@ -26,7 +26,10 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-app.UseHttpsRedirection();
+if (app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 
 app.UseStaticFiles();
 app.UseAntiforgery();
@@ -35,5 +38,10 @@ app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
 var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
-Console.WriteLine($"Starting application on port {port}");
-app.Run($"http://0.0.0.0:{port}");
+var url = $"http://0.0.0.0:{port}";
+
+Console.WriteLine($"Starting application on {url}");
+Console.WriteLine($"Environment: {app.Environment.EnvironmentName}");
+Console.WriteLine($"API URL: {apiUrl}");
+
+app.Run(url);
