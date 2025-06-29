@@ -1,4 +1,4 @@
-﻿namespace LearningApp.Core.Models;
+﻿namespace LearningApp.Api.Core.Models;
 
 public class Exercise
 {

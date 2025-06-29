@@ -1,10 +1,10 @@
-﻿using LearningApp.API.DTOs;
-using LearningApp.Core.Models;
-using LearningApp.Data;
+﻿using LearningApp.Api.API.DTOs;
+using LearningApp.Api.Core.Models;
+using LearningApp.Api.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-namespace LearningApp.API.Controllers;
+namespace LearningApp.Api.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]

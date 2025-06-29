@@ -1,7 +1,7 @@
-﻿using LearningApp.Core.Models;
+﻿using LearningApp.Api.Core.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace LearningApp.Data;
+namespace LearningApp.Api.Data;
 
 public class LearningDbContext : DbContext
 {

@@ -1,4 +1,4 @@
-﻿namespace LearningApp.API.DTOs;
+﻿namespace LearningApp.Api.API.DTOs;
 
 public class ExerciseResult
 {

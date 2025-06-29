@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LearningApp", "LearningApp\LearningApp.csproj", "{9A5D9434-ACB0-4374-8778-FE37132D2263}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LearningApp.Api", "LearningApp.Api\LearningApp.Api.csproj", "{9A5D9434-ACB0-4374-8778-FE37132D2263}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LearningApp.Web", "LearningApp.Web\LearningApp.Web.csproj", "{9A105F23-A0C7-42FE-BB9A-DD31217E5402}"
 EndProject

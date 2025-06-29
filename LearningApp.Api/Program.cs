@@ -1,5 +1,5 @@
 using System.Text.Json.Serialization;
-using LearningApp.Data;
+using LearningApp.Api.Data;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
