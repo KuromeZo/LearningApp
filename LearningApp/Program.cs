@@ -58,5 +58,10 @@ app.UseCors("AllowAll");
 app.UseRouting();
 app.MapControllers();
 
-var port = Environment.GetEnvironmentVariable("PORT") ?? "5143";
-app.Run($"http://0.0.0.0:{port}");
+var port = Environment.GetEnvironmentVariable("PORT") ?? "5000";
+var url = $"http://0.0.0.0:{port}";
+
+Console.WriteLine($"API starting on: {url}");
+Console.WriteLine($"Environment: {app.Environment.EnvironmentName}");
+
+app.Run(url);

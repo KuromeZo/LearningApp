@@ -1,5 +1,6 @@
 ﻿@page "/"
 @inject ApiService ApiService
+@inject IConfiguration Configuration
 
 <PageTitle>Learning C++</PageTitle>
 
@@ -8,6 +9,34 @@
         <div class="col-12">
             <h1 class="text-center mb-4">🚀 Learning C++ Platform</h1>
             <p class="text-center text-muted">Изучайте C++ с персонализированными упражнениями</p>
+            
+            <!-- Диагностическая информация -->
+            <div class="alert alert-info">
+                <h5>🔍 Диагностика подключения:</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Время загрузки:</strong> @loadTime</p>
+                        <p><strong>API URL (env):</strong> @apiUrlFromEnv</p>
+                        <p><strong>API URL (config):</strong> @apiUrlFromConfig</p>
+                        <p><strong>Текущий домен:</strong> @currentDomain</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Статус API:</strong> @apiStatus</p>
+                        <p><strong>Количество тем:</strong> @topicsCount</p>
+                        <p><strong>Ошибка:</strong> @errorMessage</p>
+                        <p><strong>Детали ошибки:</strong> @errorDetails</p>
+                    </div>
+                </div>
+                
+                @if (!string.IsNullOrEmpty(apiUrlFromEnv))
+                {
+                    <div class="mt-2">
+                        <a href="@(apiUrlFromEnv)swagger" target="_blank" class="btn btn-sm btn-outline-primary">
+                            🔗 Открыть API Swagger
+                        </a>
+                    </div>
+                }
+            </div>
         </div>
     </div>
 
@@ -15,12 +44,25 @@
     {
         <div class="text-center">
             <div class="spinner-border" role="status">
-                <span class="visually-hidden">Загрузка...</span>
+                <span class="visually-hidden">Загрузка тем...</span>
             </div>
+            <p class="mt-2">Подключаемся к API...</p>
+        </div>
+    }
+    else if (topics.Count == 0)
+    {
+        <div class="alert alert-warning">
+            <h5>⚠️ Нет данных</h5>
+            <p>API отвечает, но не возвращает темы. Проверьте базу данных API.</p>
         </div>
     }
     else
     {
+        <div class="alert alert-success">
+            <h5>✅ Подключение успешно!</h5>
+            <p>Загружено тем: @topics.Count</p>
+        </div>
+        
         <div class="row g-3">
             @foreach (var topic in topics)
             {
@@ -43,9 +85,56 @@
 
 @code {
     private List<Topic>? topics;
+    private string loadTime = "";
+    private string apiUrlFromEnv = "";
+    private string apiUrlFromConfig = "";
+    private string currentDomain = "";
+    private string apiStatus = "";
+    private string errorMessage = "";
+    private string errorDetails = "";
+    private int topicsCount = 0;
 
     protected override async Task OnInitializedAsync()
     {
-        topics = await ApiService.GetTopicsAsync();
+        loadTime = DateTime.Now.ToString("HH:mm:ss");
+        apiUrlFromEnv = Environment.GetEnvironmentVariable("API_URL") ?? "Не установлен";
+        apiUrlFromConfig = Configuration["ApiUrl"] ?? "Не установлен";
+        currentDomain = "vibrant-fascination-production-05d0.up.railway.app";
+        
+        try
+        {
+            apiStatus = "🔄 Подключение...";
+            StateHasChanged();
+            
+            topics = await ApiService.GetTopicsAsync();
+            topicsCount = topics?.Count ?? 0;
+            
+            if (topics != null && topics.Count > 0)
+            {
+                apiStatus = $"✅ Успешно ({topicsCount} тем)";
+            }
+            else
+            {
+                apiStatus = "⚠️ Пустой ответ";
+            }
+        }
+        catch (HttpRequestException httpEx)
+        {
+            apiStatus = "❌ Ошибка HTTP";
+            errorMessage = httpEx.Message;
+            errorDetails = $"Не удалось подключиться к API. Проверьте что API доступен по адресу: {apiUrlFromEnv}";
+        }
+        catch (TaskCanceledException timeoutEx)
+        {
+            apiStatus = "⏰ Таймаут";
+            errorMessage = "Превышен таймаут подключения";
+            errorDetails = timeoutEx.Message;
+        }
+        catch (Exception ex)
+        {
+            apiStatus = "❌ Общая ошибка";
+            errorMessage = ex.Message;
+            errorDetails = ex.ToString();
+        }
     }
 }
