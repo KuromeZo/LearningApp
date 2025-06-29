@@ -7,6 +7,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
         <ProjectReference Include="..\LearningApp\LearningApp.csproj" />
         <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="8.0.0" />
     </ItemGroup>

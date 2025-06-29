@@ -6,9 +6,16 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
+var apiUrl = Environment.GetEnvironmentVariable("API_URL") 
+             ?? builder.Configuration.GetValue<string>("ApiUrl")
+             ?? "https://localhost:7031/";
+
+Console.WriteLine($"Using API URL: {apiUrl}");
+
 builder.Services.AddHttpClient<ApiService>(client =>
 {
-    client.BaseAddress = new Uri("http://localhost:5143/"); 
+    client.BaseAddress = new Uri(apiUrl);
+    client.Timeout = TimeSpan.FromSeconds(30);
 });
 
 var app = builder.Build();
@@ -26,4 +33,5 @@ app.UseAntiforgery();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
-app.Run();
+var port = Environment.GetEnvironmentVariable("PORT") ?? "5129";
+app.Run($"http://0.0.0.0:{port}");

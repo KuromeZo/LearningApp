@@ -1,0 +1,44 @@
+# .NET
+bin/
+obj/
+*.user
+*.suo
+.vs/
+.vscode/
+*.userprefs
+.DS_Store
+
+# Database
+*.db
+*.db-shm
+*.db-wal
+
+# Logs
+logs/
+*.log
+
+# Runtime
+wwwroot/lib/
+
+# IDE
+.idea/
+*.swp
+*.swo
+
+# Dependencies
+node_modules/
+package-lock.json
+
+# Environment
+.env
+.env.local
+.env.production
+.env.development
+
+# Railway
+.railway/
+
+# Secrets
+appsettings.*.json
+!appsettings.json
+!appsettings.Development.json
