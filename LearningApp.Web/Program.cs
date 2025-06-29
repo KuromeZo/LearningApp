@@ -27,11 +27,13 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
 app.UseStaticFiles();
 app.UseAntiforgery();
 
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
-var port = Environment.GetEnvironmentVariable("PORT") ?? "5129";
+var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+Console.WriteLine($"Starting application on port {port}");
 app.Run($"http://0.0.0.0:{port}");
