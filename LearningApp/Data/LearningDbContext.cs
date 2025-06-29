@@ -15,7 +15,7 @@ public class LearningDbContext : DbContext
     {
         modelBuilder.Entity<Exercise>()
             .HasOne(e => e.Topic)
-            .WithMany(e => e.Exercises)
+            .WithMany(t => t.Exercises)
             .HasForeignKey(e => e.TopicId);
         
         SeedData(modelBuilder);

@@ -10,6 +10,11 @@ public class ExercisesController : ControllerBase
 {
     private readonly LearningDbContext _context;
 
+    public ExercisesController(LearningDbContext context)
+    {
+        _context = context;
+    }
+
     [HttpPost("{id}/submit")]
     public async Task<ActionResult<ExerciseResult>> SubmitSolution(
         int id, [FromBody] SubmitSolutionRequest request)

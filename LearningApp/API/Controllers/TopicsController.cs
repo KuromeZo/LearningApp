@@ -25,7 +25,7 @@ public class TopicsController : ControllerBase
             .ToListAsync();
     }
 
-    [HttpGet]
+    [HttpGet("{id}")]
     public async Task<ActionResult<List<Topic>>> GetTopics(int id)
     {
         var topic = await _context.Topics
