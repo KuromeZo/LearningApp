@@ -1,5 +1,4 @@
-﻿using LearningApp.API.DTOs;
-using LearningApp.Core.Models;
+﻿using LearningApp.Web.Models;
 
 namespace LearningApp.Web.Services;
 
@@ -36,4 +35,3 @@ public class ApiService
         return await _httpClient.GetFromJsonAsync<Exercise>($"api/exercises/{id}");
     }
 }
-
