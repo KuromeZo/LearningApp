@@ -51,6 +51,13 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
+app.MapGet("/", () => new { 
+    Status = "API Working", 
+    Time = DateTime.Now,
+    Environment = app.Environment.EnvironmentName,
+    Swagger = "/swagger"
+});
+
 app.UseSwagger();
 app.UseSwaggerUI();
 
