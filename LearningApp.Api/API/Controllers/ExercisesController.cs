@@ -95,4 +95,16 @@ public class ExercisesController : ControllerBase
 
         return Ok(savedExercise);
     }
+    
+    [HttpDelete("{id}")]
+    public async Task<ActionResult> DeleteExercise(int id)
+    {
+        var exercise = await _context.Exercises.FindAsync(id);
+        if (exercise == null) return NotFound();
+
+        _context.Exercises.Remove(exercise);
+        await _context.SaveChangesAsync();
+
+        return Ok(new { message = "Упражнение удалено", id = id });
+    }
 }

@@ -35,7 +35,7 @@
                                         }
                                     </select>
                                 </div>
-
+                                
                                 <div class="col-md-6 mb-3">
                                     <label for="difficultySelect" class="form-label">Сложность:</label>
                                     <select @bind="difficulty" class="form-select" id="difficultySelect">
@@ -50,13 +50,13 @@
 
                             <div class="mb-3">
                                 <label for="focusArea" class="form-label">Фокус (необязательно):</label>
-                                <input @bind="focusArea" type="text" class="form-control" id="focusArea"
+                                <input @bind="focusArea" type="text" class="form-control" id="focusArea" 
                                        placeholder="например: циклы for, работа с массивами, указатели...">
                                 <div class="form-text">Укажите конкретную область для фокуса упражнения</div>
                             </div>
 
                             <div class="d-flex gap-2">
-                                <button type="button" class="btn btn-primary" @onclick="GenerateExercise"
+                                <button type="button" class="btn btn-primary" @onclick="GenerateExercise" 
                                         disabled="@(isGenerating || selectedTopicId == 0)">
                                     @if (isGenerating)
                                     {
@@ -64,7 +64,7 @@
                                     }
                                     🚀 Сгенерировать упражнение
                                 </button>
-
+                                
                                 <button type="button" class="btn btn-secondary" @onclick="ClearForm">
                                     🔄 Очистить
                                 </button>
@@ -102,13 +102,44 @@
                             <h6>Темы:</h6>
                             @foreach (var topic in topics)
                             {
-                                <div class="d-flex justify-content-between">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
                                     <span>@topic.Name</span>
                                     <span class="badge bg-secondary">@topic.Exercises.Count</span>
                                 </div>
                             }
                         </div>
                     </div>
+
+                    @if (recentExercises.Any())
+                    {
+                        <div class="card mt-3">
+                            <div class="card-header">
+                                <h5 class="mb-0">🕒 Последние созданные</h5>
+                            </div>
+                            <div class="card-body">
+                                @foreach (var exercise in recentExercises.Take(5))
+                                {
+                                    <div class="d-flex justify-content-between align-items-center mb-2 p-2 border rounded">
+                                        <div class="flex-grow-1">
+                                            <small class="fw-bold">@exercise.Title</small><br>
+                                            <small class="text-muted">ID: @exercise.Id, Сложность: @exercise.Difficulty</small>
+                                        </div>
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="/exercise/@exercise.Id" class="btn btn-outline-primary btn-sm" title="Открыть">
+                                                👁️
+                                            </a>
+                                            <button type="button" class="btn btn-outline-danger btn-sm" 
+                                                    @onclick="() => ConfirmDelete(exercise.Id, exercise.Title)"
+                                                    disabled="@isDeleting"
+                                                    title="Удалить">
+                                                🗑️
+                                            </button>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
                 </div>
             </div>
 
@@ -118,7 +149,14 @@
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header bg-success text-white">
-                                <h5 class="mb-0">✨ Сгенерированное упражнение</h5>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h5 class="mb-0">✨ Сгенерированное упражнение</h5>
+                                    <button type="button" class="btn btn-outline-light btn-sm" 
+                                            @onclick="() => ConfirmDelete(generatedExercise.Id, generatedExercise.Title)"
+                                            disabled="@isDeleting">
+                                        🗑️ Удалить
+                                    </button>
+                                </div>
                             </div>
                             <div class="card-body">
                                 <div class="row">
@@ -142,26 +180,31 @@
                                                 <td>@generatedExercise.Topic?.Name</td>
                                             </tr>
                                         </table>
-
+                                        
                                         <h6>📋 Описание:</h6>
                                         <p class="border p-2 bg-light">@generatedExercise.Description</p>
-
+                                        
                                         @if (!string.IsNullOrEmpty(generatedExercise.ExpectedOutput))
                                         {
                                             <h6>📤 Ожидаемый вывод:</h6>
                                             <pre class="border p-2 bg-light"><code>@generatedExercise.ExpectedOutput</code></pre>
                                         }
                                     </div>
-
+                                    
                                     <div class="col-md-6">
                                         <h6>💻 Стартовый код:</h6>
                                         <pre class="border p-2 bg-light"><code>@generatedExercise.StarterCode</code></pre>
-
-                                        <h6>✅ Решение:</h6>
-                                        <pre class="border p-2 bg-light"><code>@generatedExercise.Solution</code></pre>
+                                        
+                                        <details>
+                                            <summary class="btn btn-outline-warning btn-sm">👁️ Показать решение (для проверки)</summary>
+                                            <div class="mt-2">
+                                                <h6>✅ Решение:</h6>
+                                                <pre class="border p-2 bg-light"><code>@generatedExercise.Solution</code></pre>
+                                            </div>
+                                        </details>
                                     </div>
                                 </div>
-
+                                
                                 <hr>
                                 <div class="d-flex justify-content-between">
                                     <div>
@@ -185,15 +228,55 @@
     </div>
 </div>
 
+<!-- Модальное окно подтверждения удаления -->
+@if (showDeleteModal)
+{
+    <div class="modal show d-block" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">🗑️ Подтверждение удаления</h5>
+                </div>
+                <div class="modal-body">
+                    <p>Вы уверены, что хотите удалить упражнение?</p>
+                    <div class="alert alert-warning">
+                        <strong>@exerciseToDelete?.Title</strong><br>
+                        <small>ID: @exerciseToDelete?.Id</small>
+                    </div>
+                    <p class="text-danger"><small>⚠️ Это действие нельзя отменить!</small></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CancelDelete" disabled="@isDeleting">
+                        Отмена
+                    </button>
+                    <button type="button" class="btn btn-danger" @onclick="DeleteExercise" disabled="@isDeleting">
+                        @if (isDeleting)
+                        {
+                            <span class="spinner-border spinner-border-sm me-2"></span>
+                        }
+                        🗑️ Удалить
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
 @code {
     private List<Topic> topics = new();
+    private List<Exercise> recentExercises = new();
     private int selectedTopicId = 0;
     private int difficulty = 1;
     private string focusArea = "";
     private bool isGenerating = false;
+    private bool isDeleting = false;
     private string statusMessage = "";
     private Exercise? generatedExercise;
     private int generatedCount = 0;
+    
+    // Для модального окна удаления
+    private bool showDeleteModal = false;
+    private (int Id, string Title)? exerciseToDelete = null;
 
     protected override async Task OnInitializedAsync()
     {
@@ -201,12 +284,22 @@
         {
             statusMessage = "Загружаем данные...";
             topics = await ApiService.GetTopicsAsync();
+            LoadRecentExercises();
             statusMessage = "";
         }
         catch (Exception ex)
         {
             statusMessage = $"Ошибка загрузки: {ex.Message}";
         }
+    }
+
+    private void LoadRecentExercises()
+    {
+        recentExercises = topics
+            .SelectMany(t => t.Exercises)
+            .OrderByDescending(e => e.Id)
+            .Take(10)
+            .ToList();
     }
 
     private async Task GenerateExercise()
@@ -216,14 +309,14 @@
         isGenerating = true;
         statusMessage = "🤖 ИИ создает упражнение... Это может занять 10-30 секунд.";
         generatedExercise = null;
-
+        
         await InvokeAsync(StateHasChanged);
 
         try
         {
             var exercise = await ApiService.GenerateExerciseAsync(
-                selectedTopicId,
-                difficulty,
+                selectedTopicId, 
+                difficulty, 
                 string.IsNullOrWhiteSpace(focusArea) ? null : focusArea
             );
 
@@ -232,9 +325,9 @@
                 generatedExercise = exercise;
                 generatedCount++;
                 statusMessage = "✅ Упражнение успешно сгенерировано и сохранено!";
-
+                
                 // Обновляем статистику
-                await RefreshTopics();
+                await RefreshData();
             }
             else
             {
@@ -252,11 +345,12 @@
         }
     }
 
-    private async Task RefreshTopics()
+    private async Task RefreshData()
     {
         try
         {
             topics = await ApiService.GetTopicsAsync();
+            LoadRecentExercises();
         }
         catch (Exception)
         {
@@ -264,14 +358,70 @@
         }
     }
 
-    private async Task ClearForm()
+    private void ClearForm()
     {
         selectedTopicId = 0;
         difficulty = 1;
         focusArea = "";
         statusMessage = "";
         generatedExercise = null;
+        StateHasChanged();
+    }
+
+    private void ConfirmDelete(int exerciseId, string title)
+    {
+        exerciseToDelete = (exerciseId, title);
+        showDeleteModal = true;
+        StateHasChanged();
+    }
+
+    private void CancelDelete()
+    {
+        showDeleteModal = false;
+        exerciseToDelete = null;
+        StateHasChanged();
+    }
+
+    private async Task DeleteExercise()
+    {
+        if (exerciseToDelete == null) return;
+
+        isDeleting = true;
         await InvokeAsync(StateHasChanged);
+
+        try
+        {
+            var success = await ApiService.DeleteExerciseAsync(exerciseToDelete.Value.Id);
+            
+            if (success)
+            {
+                statusMessage = $"✅ Упражнение '{exerciseToDelete.Value.Title}' удалено!";
+                
+                // Если удаляем текущее сгенерированное упражнение
+                if (generatedExercise?.Id == exerciseToDelete.Value.Id)
+                {
+                    generatedExercise = null;
+                }
+                
+                // Обновляем данные
+                await RefreshData();
+            }
+            else
+            {
+                statusMessage = "❌ Не удалось удалить упражнение. Попробуйте ещё раз.";
+            }
+        }
+        catch (Exception ex)
+        {
+            statusMessage = $"❌ Ошибка удаления: {ex.Message}";
+        }
+        finally
+        {
+            isDeleting = false;
+            showDeleteModal = false;
+            exerciseToDelete = null;
+            await InvokeAsync(StateHasChanged);
+        }
     }
 
     private string GetStatusAlertClass()

@@ -185,4 +185,27 @@ public class ApiService
             throw;
         }
     }
+    
+    public async Task<bool> DeleteExerciseAsync(int id)
+    {
+        try
+        {
+            _logger.LogInformation($"Deleting exercise {id}");
+            var response = await _httpClient.DeleteAsync($"api/exercises/{id}");
+        
+            if (!response.IsSuccessStatusCode)
+            {
+                _logger.LogError($"Failed to delete exercise: {response.StatusCode}");
+                return false;
+            }
+
+            _logger.LogInformation($"Successfully deleted exercise {id}");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Error deleting exercise {id}");
+            return false;
+        }
+    }
 }

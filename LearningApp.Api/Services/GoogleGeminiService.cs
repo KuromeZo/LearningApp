@@ -119,20 +119,30 @@ public class GoogleGeminiService : IAIService
 Создай упражнение по C++ для темы ""{topicName}"" с уровнем сложности {difficulty} (1-5).
 {focusText}
 
-Требования:
-- Практическое задание с четким условием на русском языке
-- Стартовый код с комментариями
-- Полное правильное решение
-- Ожидаемый вывод программы
+ВАЖНО! Четко разделяй starterCode и solution:
+- starterCode: ТОЛЬКО базовая структура C++ с комментариями-подсказками
+- solution: ПОЛНОЕ работающее решение
 
-Ответь ТОЛЬКО в JSON формате (без дополнительного текста):
+Ответь ТОЛЬКО в JSON формате:
 {{
     ""title"": ""название упражнения"",
     ""description"": ""подробное описание задания"",
-    ""starterCode"": ""начальный код с комментариями"",
-    ""solution"": ""полное решение"",
+    ""starterCode"": ""#include <iostream>\nusing namespace std;\n\nint main() {{\n    // Ваш код здесь\n    // Подсказка: что нужно сделать\n    \n    return 0;\n}}"",
+    ""solution"": ""полное правильное решение с #include и всем кодом"",
     ""expectedOutput"": ""ожидаемый вывод программы"",
     ""difficulty"": {difficulty}
+}}
+
+Пример правильного starterCode:
+#include <iostream>
+using namespace std;
+
+int main() {{
+    // Объявите переменную
+    // Присвойте ей значение  
+    // Выведите результат
+    
+    return 0;
 }}";
 
             var request = new
@@ -185,7 +195,7 @@ public class GoogleGeminiService : IAIService
                 {
                     Title = exerciseData?.Title ?? $"Упражнение по теме: {topicName}",
                     Description = exerciseData?.Description ?? "Создайте простую программу на C++",
-                    StarterCode = exerciseData?.StarterCode ?? GetDefaultStarterCode(),
+                    StarterCode = CleanStarterCode(exerciseData?.StarterCode) ?? GetDefaultStarterCode(), // ИЗМЕНИТЬ
                     Solution = exerciseData?.Solution ?? GetDefaultSolution(),
                     ExpectedOutput = exerciseData?.ExpectedOutput ?? "Hello World!",
                     Difficulty = exerciseData?.Difficulty ?? difficulty
@@ -294,7 +304,8 @@ public class GoogleGeminiService : IAIService
 using namespace std;
 
 int main() {
-    // Ваш код здесь
+    // Напишите ваш код здесь
+    // Следуйте инструкциям в условии задачи
     
     return 0;
 }";
@@ -309,6 +320,18 @@ int main() {
     cout << ""Hello World!"" << endl;
     return 0;
 }";
+    }
+    
+    private string CleanStarterCode(string? starterCode)
+    {
+        if (string.IsNullOrEmpty(starterCode)) return GetDefaultStarterCode();
+    
+        if (starterCode.Contains("cout <<") && starterCode.Split('\n').Length > 10)
+        {
+            return GetDefaultStarterCode();
+        }
+    
+        return starterCode;
     }
     
     private class GeminiResponse
