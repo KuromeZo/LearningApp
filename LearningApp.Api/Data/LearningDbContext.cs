@@ -14,10 +14,22 @@ public class LearningDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Exercise>()
+            .Property(e => e.Id)
+            .UseSerialColumn();
+
+        modelBuilder.Entity<Topic>()
+            .Property(t => t.Id)
+            .UseSerialColumn();
+
+        modelBuilder.Entity<User>()
+            .Property(u => u.Id)
+            .UseSerialColumn();
+
+        modelBuilder.Entity<Exercise>()
             .HasOne(e => e.Topic)
             .WithMany(t => t.Exercises)
             .HasForeignKey(e => e.TopicId);
-        
+    
         SeedData(modelBuilder);
     }
 
