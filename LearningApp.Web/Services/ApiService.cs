@@ -130,4 +130,59 @@ public class ApiService
             throw;
         }
     }
+
+    public async Task<string> GetHintAsync(int exerciseId, string userCode)
+    {
+        try
+        {
+            _logger.LogInformation($"Getting hint for exercise {exerciseId}");
+            var request = new HintRequest { UserCode = userCode };
+            var response = await _httpClient.PostAsJsonAsync($"api/exercises/{exerciseId}/hint", request);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                _logger.LogError($"Failed to get hint: {response.StatusCode}");
+                return "Не удалось получить подсказку. Попробуйте ещё раз.";
+            }
+
+            var result = await response.Content.ReadFromJsonAsync<HintResponse>();
+            return result?.Hint ?? "Проверьте логику вашего кода.";
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Error getting hint for exercise {exerciseId}");
+            return "Ошибка при получении подсказки.";
+        }
+    }
+    
+    public async Task<Exercise?> GenerateExerciseAsync(int topicId, int difficulty, string? focusArea = null)
+    {
+        try
+        {
+            _logger.LogInformation($"Generating exercise for topic {topicId}, difficulty {difficulty}");
+            var request = new GenerateExerciseRequest 
+            { 
+                TopicId = topicId, 
+                Difficulty = difficulty, 
+                FocusArea = focusArea 
+            };
+        
+            var response = await _httpClient.PostAsJsonAsync("api/exercises/generate", request);
+        
+            if (!response.IsSuccessStatusCode)
+            {
+                _logger.LogError($"Failed to generate exercise: {response.StatusCode}");
+                return null;
+            }
+
+            var exercise = await response.Content.ReadFromJsonAsync<Exercise>();
+            _logger.LogInformation($"Successfully generated exercise: {exercise?.Title}");
+            return exercise;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error generating exercise");
+            throw;
+        }
+    }
 }

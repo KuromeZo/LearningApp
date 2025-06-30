@@ -103,3 +103,14 @@
         overflow-y: auto;
     }
 }
+
+.nav-divider {
+    border-color: rgba(255, 255, 255, 0.2);
+    margin: 1rem 0;
+}
+
+.nav-item small {
+    display: block;
+    padding: 0.25rem 0.75rem;
+    line-height: 1.2;
+}

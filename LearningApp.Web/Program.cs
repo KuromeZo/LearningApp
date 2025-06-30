@@ -8,7 +8,7 @@ builder.Services.AddRazorComponents()
 
 var apiUrl = Environment.GetEnvironmentVariable("API_URL") 
              ?? builder.Configuration.GetValue<string>("ApiUrl")
-             ?? "https://localhost:5000/";
+             ?? "http://localhost:5000/";
 
 if (!apiUrl.EndsWith("/"))
 {

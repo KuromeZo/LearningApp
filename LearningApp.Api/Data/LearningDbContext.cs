@@ -37,7 +37,7 @@ public class LearningDbContext : DbContext
             { 
                 Id = 1, TopicId = 1, 
                 Title = "Объявление переменных",
-                Description = "Объявите переменную типа int с именем 'age' и присвойте ей значение 25",
+                Description = "Объявите переменную типа int с именем 'age' и присвойте ей значение 25 и выведите на экран",
                 StarterCode = "// Напишите ваш код здесь\n",
                 ExpectedOutput = "25",
                 Solution = "int age = 25;\ncout << age;",

@@ -1,0 +1,283 @@
+﻿@page "/admin/generate"
+@inject ApiService ApiService
+@rendermode InteractiveServer
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="/">Главная</a></li>
+                    <li class="breadcrumb-item active">ИИ Генератор</li>
+                </ol>
+            </nav>
+
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>🤖 ИИ Генератор упражнений</h1>
+                <span class="badge bg-success fs-6">Powered by Google Gemini (FREE)</span>
+            </div>
+
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">⚙️ Настройки генерации</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="topicSelect" class="form-label">Тема:</label>
+                                    <select @bind="selectedTopicId" class="form-select" id="topicSelect">
+                                        <option value="0">Выберите тему...</option>
+                                        @foreach (var topic in topics)
+                                        {
+                                            <option value="@topic.Id">@topic.Name</option>
+                                        }
+                                    </select>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label for="difficultySelect" class="form-label">Сложность:</label>
+                                    <select @bind="difficulty" class="form-select" id="difficultySelect">
+                                        <option value="1">1 - Очень легко</option>
+                                        <option value="2">2 - Легко</option>
+                                        <option value="3">3 - Средне</option>
+                                        <option value="4">4 - Сложно</option>
+                                        <option value="5">5 - Очень сложно</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="focusArea" class="form-label">Фокус (необязательно):</label>
+                                <input @bind="focusArea" type="text" class="form-control" id="focusArea"
+                                       placeholder="например: циклы for, работа с массивами, указатели...">
+                                <div class="form-text">Укажите конкретную область для фокуса упражнения</div>
+                            </div>
+
+                            <div class="d-flex gap-2">
+                                <button type="button" class="btn btn-primary" @onclick="GenerateExercise"
+                                        disabled="@(isGenerating || selectedTopicId == 0)">
+                                    @if (isGenerating)
+                                    {
+                                        <span class="spinner-border spinner-border-sm me-2"></span>
+                                    }
+                                    🚀 Сгенерировать упражнение
+                                </button>
+
+                                <button type="button" class="btn btn-secondary" @onclick="ClearForm">
+                                    🔄 Очистить
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(statusMessage))
+                    {
+                        <div class="alert @GetStatusAlertClass() mt-3">
+                            <strong>Статус:</strong> @statusMessage
+                        </div>
+                    }
+                </div>
+
+                <div class="col-lg-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">📊 Статистика</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row text-center">
+                                <div class="col-6">
+                                    <div class="border-end">
+                                        <h4 class="text-primary">@topics.Sum(t => t.Exercises.Count)</h4>
+                                        <small class="text-muted">Всего упражнений</small>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <h4 class="text-success">@generatedCount</h4>
+                                    <small class="text-muted">Сгенерировано сегодня</small>
+                                </div>
+                            </div>
+                            <hr>
+                            <h6>Темы:</h6>
+                            @foreach (var topic in topics)
+                            {
+                                <div class="d-flex justify-content-between">
+                                    <span>@topic.Name</span>
+                                    <span class="badge bg-secondary">@topic.Exercises.Count</span>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @if (generatedExercise != null)
+            {
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header bg-success text-white">
+                                <h5 class="mb-0">✨ Сгенерированное упражнение</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h6>📝 Информация:</h6>
+                                        <table class="table table-sm">
+                                            <tr>
+                                                <td><strong>ID:</strong></td>
+                                                <td>@generatedExercise.Id</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Название:</strong></td>
+                                                <td>@generatedExercise.Title</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Сложность:</strong></td>
+                                                <td>@generatedExercise.Difficulty</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Тема:</strong></td>
+                                                <td>@generatedExercise.Topic?.Name</td>
+                                            </tr>
+                                        </table>
+
+                                        <h6>📋 Описание:</h6>
+                                        <p class="border p-2 bg-light">@generatedExercise.Description</p>
+
+                                        @if (!string.IsNullOrEmpty(generatedExercise.ExpectedOutput))
+                                        {
+                                            <h6>📤 Ожидаемый вывод:</h6>
+                                            <pre class="border p-2 bg-light"><code>@generatedExercise.ExpectedOutput</code></pre>
+                                        }
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <h6>💻 Стартовый код:</h6>
+                                        <pre class="border p-2 bg-light"><code>@generatedExercise.StarterCode</code></pre>
+
+                                        <h6>✅ Решение:</h6>
+                                        <pre class="border p-2 bg-light"><code>@generatedExercise.Solution</code></pre>
+                                    </div>
+                                </div>
+
+                                <hr>
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <a href="/exercise/@generatedExercise.Id" class="btn btn-primary">
+                                            🔍 Посмотреть упражнение
+                                        </a>
+                                        <a href="/topic/@generatedExercise.TopicId" class="btn btn-secondary">
+                                            📚 Перейти к теме
+                                        </a>
+                                    </div>
+                                    <small class="text-muted align-self-end">
+                                        Упражнение автоматически сохранено в базу данных
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<Topic> topics = new();
+    private int selectedTopicId = 0;
+    private int difficulty = 1;
+    private string focusArea = "";
+    private bool isGenerating = false;
+    private string statusMessage = "";
+    private Exercise? generatedExercise;
+    private int generatedCount = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            statusMessage = "Загружаем данные...";
+            topics = await ApiService.GetTopicsAsync();
+            statusMessage = "";
+        }
+        catch (Exception ex)
+        {
+            statusMessage = $"Ошибка загрузки: {ex.Message}";
+        }
+    }
+
+    private async Task GenerateExercise()
+    {
+        if (selectedTopicId == 0) return;
+
+        isGenerating = true;
+        statusMessage = "🤖 ИИ создает упражнение... Это может занять 10-30 секунд.";
+        generatedExercise = null;
+
+        await InvokeAsync(StateHasChanged);
+
+        try
+        {
+            var exercise = await ApiService.GenerateExerciseAsync(
+                selectedTopicId,
+                difficulty,
+                string.IsNullOrWhiteSpace(focusArea) ? null : focusArea
+            );
+
+            if (exercise != null)
+            {
+                generatedExercise = exercise;
+                generatedCount++;
+                statusMessage = "✅ Упражнение успешно сгенерировано и сохранено!";
+
+                // Обновляем статистику
+                await RefreshTopics();
+            }
+            else
+            {
+                statusMessage = "❌ Не удалось сгенерировать упражнение. Попробуйте ещё раз.";
+            }
+        }
+        catch (Exception ex)
+        {
+            statusMessage = $"❌ Ошибка генерации: {ex.Message}";
+        }
+        finally
+        {
+            isGenerating = false;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private async Task RefreshTopics()
+    {
+        try
+        {
+            topics = await ApiService.GetTopicsAsync();
+        }
+        catch (Exception)
+        {
+            // Игнорируем ошибки обновления статистики
+        }
+    }
+
+    private async Task ClearForm()
+    {
+        selectedTopicId = 0;
+        difficulty = 1;
+        focusArea = "";
+        statusMessage = "";
+        generatedExercise = null;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private string GetStatusAlertClass()
+    {
+        if (statusMessage.StartsWith("✅")) return "alert-success";
+        if (statusMessage.StartsWith("❌")) return "alert-danger";
+        return "alert-info";
+    }
+}

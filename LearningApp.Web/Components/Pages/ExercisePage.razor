@@ -29,15 +29,16 @@
                         <h1>💻 @exercise.Title</h1>
                         <p class="text-muted mb-0">Тема: @exercise.Topic.Name</p>
                     </div>
-                    <span class="badge bg-info fs-6">Сложность: @exercise.Difficulty</span>
-                </div>
-
-                @if (!string.IsNullOrEmpty(debugMessage))
-                {
-                    <div class="alert alert-info">
-                        <strong>Debug:</strong> @debugMessage
+                    <div class="d-flex align-items-center gap-3">
+                        <span class="badge bg-info fs-6">Сложность: @exercise.Difficulty</span>
+                        @if (result != null && result.Score > 0)
+                        {
+                            <span class="badge @GetScoreBadgeClass(result.Score) fs-6">
+                                🤖 Оценка ИИ: @result.Score/100
+                            </span>
+                        }
                     </div>
-                }
+                </div>
 
                 <div class="row">
                     <div class="col-lg-6 mb-4">
@@ -56,11 +57,16 @@
                                     </div>
                                 }
 
-                                @if (showHint && !string.IsNullOrEmpty(exercise.Solution))
+                                @if (!string.IsNullOrEmpty(aiHint))
                                 {
                                     <div class="alert alert-warning">
-                                        <strong>💡 Подсказка:</strong><br>
-                                        <small>Попробуйте использовать: <code>@GetHint()</code></small>
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div>
+                                                <strong>🤖 ИИ Подсказка:</strong><br>
+                                                <small>@aiHint</small>
+                                            </div>
+                                            <button type="button" class="btn-close btn-sm" @onclick="ClearHint"></button>
+                                        </div>
                                     </div>
                                 }
                             </div>
@@ -87,40 +93,58 @@
                                         {
                                             <span class="spinner-border spinner-border-sm me-2"></span>
                                         }
-                                        🔍 Проверить
+                                        🤖 Проверить с ИИ
                                     </button>
                                     
                                     <button type="button" class="btn btn-secondary" @onclick="ResetCode">
                                         🔄 Сброс
                                     </button>
                                     
-                                    <button type="button" class="btn btn-warning" @onclick="ShowHint">
-                                        💡 Подсказка
-                                    </button>
-
-                                    <button type="button" class="btn btn-info btn-sm" @onclick="TestButtons">
-                                        🧪 Тест
+                                    <button type="button" class="btn btn-warning" @onclick="GetAIHint" disabled="@isGettingHint">
+                                        @if (isGettingHint)
+                                        {
+                                            <span class="spinner-border spinner-border-sm me-2"></span>
+                                        }
+                                        💡 ИИ Подсказка
                                     </button>
                                 </div>
 
                                 @if (result != null)
                                 {
-                                    <div class="alert @(result.IsCorrect ? "alert-success" : "alert-danger")" role="alert">
-                                        <div class="d-flex align-items-center">
-                                            <span class="me-2">@(result.IsCorrect ? "✅" : "❌")</span>
-                                            <strong>@result.Message</strong>
-                                        </div>
-                                        
-                                        @if (result.IsCorrect)
-                                        {
-                                            <hr>
-                                            <div class="d-flex justify-content-between align-items-center mb-0">
-                                                <span>Отличная работа! 🎉</span>
-                                                <a href="/topic/@exercise.TopicId" class="btn btn-primary btn-sm">
-                                                    Вернуться к теме
-                                                </a>
+                                    <div class="card mb-3">
+                                        <div class="card-header @(result.IsCorrect ? "bg-success text-white" : "bg-danger text-white")">
+                                            <div class="d-flex align-items-center justify-content-between">
+                                                <span>@(result.IsCorrect ? "✅ Правильно!" : "❌ Требуется доработка")</span>
+                                                <span class="badge bg-light text-dark">🤖 @result.Score/100</span>
                                             </div>
-                                        }
+                                        </div>
+                                        <div class="card-body">
+                                            <p class="mb-2"><strong>ИИ обратная связь:</strong></p>
+                                            <p>@result.Message</p>
+
+                                            @if (result.Suggestions?.Any() == true)
+                                            {
+                                                <hr>
+                                                <p class="mb-2"><strong>💡 ИИ рекомендации:</strong></p>
+                                                <ul class="mb-0">
+                                                    @foreach (var suggestion in result.Suggestions)
+                                                    {
+                                                        <li>@suggestion</li>
+                                                    }
+                                                </ul>
+                                            }
+
+                                            @if (result.IsCorrect)
+                                            {
+                                                <hr>
+                                                <div class="d-flex justify-content-between align-items-center mb-0">
+                                                    <span>Отличная работа! 🎉</span>
+                                                    <a href="/topic/@exercise.TopicId" class="btn btn-primary btn-sm">
+                                                        Вернуться к теме
+                                                    </a>
+                                                </div>
+                                            }
+                                        </div>
                                     </div>
                                 }
                             </div>
@@ -139,46 +163,29 @@
     private string userCode = "";
     private ExerciseResult? result;
     private bool isChecking = false;
-    private bool showHint = false;
-    private string debugMessage = "";
+    private bool isGettingHint = false;
+    private string aiHint = "";
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
-            debugMessage = $"Загружаем упражнение с ID: {ExerciseId}";
             exercise = await ApiService.GetExerciseAsync(ExerciseId);
             
-            if (exercise == null)
+            if (exercise != null && !string.IsNullOrEmpty(exercise.StarterCode))
             {
-                debugMessage = "Упражнение не найдено!";
-            }
-            else
-            {
-                debugMessage = $"Упражнение загружено: {exercise.Title}";
-                if (!string.IsNullOrEmpty(exercise.StarterCode))
-                {
-                    userCode = exercise.StarterCode;
-                }
+                userCode = exercise.StarterCode;
             }
         }
         catch (Exception ex)
         {
-            debugMessage = $"Ошибка загрузки: {ex.Message}";
+            Console.WriteLine($"Ошибка загрузки: {ex.Message}");
         }
     }
 
     private async Task CheckSolution()
     {
-        debugMessage = "Начинаем проверку решения...";
-        await InvokeAsync(StateHasChanged);
-        
-        if (string.IsNullOrWhiteSpace(userCode)) 
-        {
-            debugMessage = "Код пустой!";
-            await InvokeAsync(StateHasChanged);
-            return;
-        }
+        if (string.IsNullOrWhiteSpace(userCode)) return;
         
         isChecking = true;
         result = null;
@@ -186,19 +193,16 @@
 
         try
         {
-            debugMessage = "Отправляем код на проверку...";
-            await InvokeAsync(StateHasChanged);
-            
             result = await ApiService.SubmitSolutionAsync(ExerciseId, userCode);
-            debugMessage = $"Результат получен: {result.Message}";
         }
         catch (Exception ex)
         {
-            debugMessage = $"Ошибка проверки: {ex.Message}";
+            Console.WriteLine($"Ошибка проверки: {ex.Message}");
             result = new ExerciseResult 
             { 
                 IsCorrect = false, 
-                Message = "Ошибка при проверке решения. Попробуйте ещё раз." 
+                Message = "Ошибка при анализе решения. Попробуйте ещё раз.",
+                Score = 0
             };
         }
         finally
@@ -208,38 +212,57 @@
         }
     }
 
+    private async Task GetAIHint()
+    {
+        if (string.IsNullOrWhiteSpace(userCode))
+        {
+            aiHint = "Сначала напишите немного кода, чтобы получить персонализированную подсказку!";
+            await InvokeAsync(StateHasChanged);
+            return;
+        }
+
+        isGettingHint = true;
+        await InvokeAsync(StateHasChanged);
+
+        try
+        {
+            aiHint = await ApiService.GetHintAsync(ExerciseId, userCode);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Ошибка подсказки: {ex.Message}");
+            aiHint = "Не удалось получить подсказку. Попробуйте проверить синтаксис и логику кода.";
+        }
+        finally
+        {
+            isGettingHint = false;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
     private async Task ResetCode()
     {
-        debugMessage = "Сброс кода...";
         userCode = exercise?.StarterCode ?? "";
         result = null;
-        showHint = false;
+        aiHint = "";
         await InvokeAsync(StateHasChanged);
     }
 
-    private async Task ShowHint()
+    private async Task ClearHint()
     {
-        debugMessage = "Показываем подсказку...";
-        showHint = true;
+        aiHint = "";
         await InvokeAsync(StateHasChanged);
     }
 
-    private async Task TestButtons()
+    private string GetScoreBadgeClass(int score)
     {
-        debugMessage = $"Тест кнопок - время: {DateTime.Now:HH:mm:ss}";
-        await InvokeAsync(StateHasChanged);
-    }
-
-    private string GetHint()
-    {
-        if (exercise?.Solution == null) return "";
-        
-        var solution = exercise.Solution.Trim();
-        if (solution.Length > 10)
+        return score switch
         {
-            return solution.Substring(0, 10) + "...";
-        }
-        return solution;
+            >= 90 => "bg-success",
+            >= 70 => "bg-warning",
+            >= 50 => "bg-info",
+            _ => "bg-danger"
+        };
     }
 
     private string GetPlaceholder()
