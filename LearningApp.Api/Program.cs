@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using LearningApp.Api.Data;
+using LearningApp.Api.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -23,6 +24,9 @@ builder.Services.AddCors(options =>
             .AllowAnyHeader();
     });
 });
+
+builder.Services.AddHttpClient<IAIService, GoogleGeminiService>();
+builder.Services.AddScoped<IAIService, GoogleGeminiService>();
 
 var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
 if (!string.IsNullOrEmpty(databaseUrl))
@@ -78,10 +82,12 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.MapGet("/", () => new { 
-    Status = "API Working", 
+    Status = "API Working with Google Gemini AI", 
     Time = DateTime.Now,
     Environment = app.Environment.EnvironmentName,
-    Swagger = "/swagger"
+    Swagger = "/swagger",
+    Features = new[] { "Exercise Generation", "AI Code Review", "Smart Hints" },
+    AIProvider = "Google Gemini (FREE)"
 });
 
 app.UseSwagger();
