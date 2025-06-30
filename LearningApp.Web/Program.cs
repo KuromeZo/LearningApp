@@ -8,7 +8,12 @@ builder.Services.AddRazorComponents()
 
 var apiUrl = Environment.GetEnvironmentVariable("API_URL") 
              ?? builder.Configuration.GetValue<string>("ApiUrl")
-             ?? "https://localhost:7031/";
+             ?? "https://localhost:5000/";
+
+if (!apiUrl.EndsWith("/"))
+{
+    apiUrl += "/";
+}
 
 Console.WriteLine($"Using API URL: {apiUrl}");
 
@@ -16,6 +21,7 @@ builder.Services.AddHttpClient<ApiService>(client =>
 {
     client.BaseAddress = new Uri(apiUrl);
     client.Timeout = TimeSpan.FromSeconds(30);
+    client.DefaultRequestHeaders.Add("User-Agent", "LearningApp.Web/1.0");
 });
 
 var app = builder.Build();
@@ -36,6 +42,13 @@ app.UseAntiforgery();
 
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
+
+app.MapGet("/health", () => new { 
+    Status = "Web App Working", 
+    Time = DateTime.Now,
+    Environment = app.Environment.EnvironmentName,
+    ApiUrl = apiUrl
+});
 
 var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
 var url = $"http://0.0.0.0:{port}";

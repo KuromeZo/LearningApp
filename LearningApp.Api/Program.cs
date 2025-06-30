@@ -24,12 +24,32 @@ builder.Services.AddCors(options =>
     });
 });
 
-var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL");
-if (!string.IsNullOrEmpty(connectionString))
+var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
+if (!string.IsNullOrEmpty(databaseUrl))
 {
     Console.WriteLine("Using PostgreSQL from DATABASE_URL");
-    builder.Services.AddDbContext<LearningDbContext>(options =>
-        options.UseNpgsql(connectionString));
+    try
+    {
+        var uri = new Uri(databaseUrl);
+        var userInfo = uri.UserInfo.Split(':');
+
+        if (userInfo.Length != 2)
+        {
+            throw new InvalidOperationException("Invalid DATABASE_URL format - missing user info");
+        }
+        
+        var connectionString = $"Host={uri.Host};Port={uri.Port};Database={uri.AbsolutePath.Trim('/')};Username={userInfo[0]};Password={userInfo[1]};SSL Mode=Require;Trust Server Certificate=true";
+        
+        Console.WriteLine($"Parsed connection string: Host={uri.Host};Port={uri.Port};Database={uri.AbsolutePath.Trim('/')};Username={userInfo[0]};Password=***");
+        builder.Services.AddDbContext<LearningDbContext>(options =>
+            options.UseNpgsql(connectionString));
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error parsing DATABASE_URL: {ex.Message}");
+        Console.WriteLine($"DATABASE_URL format should be: postgres://user:password@host:port/database");
+        throw;
+    }
 }
 else
 {
@@ -53,6 +73,7 @@ using (var scope = app.Services.CreateScope())
     {
         Console.WriteLine($"Database migration error: {ex.Message}");
         Console.WriteLine($"Inner exception: {ex.InnerException?.Message}");
+        Console.WriteLine($"Stack trace: {ex.StackTrace}");
     }
 }
 

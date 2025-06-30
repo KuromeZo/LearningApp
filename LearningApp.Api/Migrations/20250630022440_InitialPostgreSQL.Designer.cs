@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LearningApp.Api.Migrations
 {
     [DbContext(typeof(LearningDbContext))]
-    [Migration("20250629221743_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20250630022440_InitialPostgreSQL")]
+    partial class InitialPostgreSQL
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
