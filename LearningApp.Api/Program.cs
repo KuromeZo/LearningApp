@@ -70,7 +70,17 @@ using (var scope = app.Services.CreateScope())
     try
     {
         Console.WriteLine("Applying database migrations...");
-        context.Database.Migrate();
+        
+        if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("DATABASE_URL")))
+        {
+            Console.WriteLine("Production: Ensuring database created with correct PostgreSQL settings...");
+            context.Database.EnsureCreated();
+        }
+        else
+        {
+            context.Database.Migrate();
+        }
+        
         Console.WriteLine("Database migrations applied successfully!");
     }
     catch (Exception ex)
