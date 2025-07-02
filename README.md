@@ -1,4 +1,4 @@
-# 🚀 Learning C++ Platform
+# Learning C++ Platform
 
 An AI-powered interactive C++ learning platform that provides personalized coding exercises, intelligent code analysis, and smart hints to help students master C++ programming. (demo product)
 
