@@ -23,8 +23,7 @@ An AI-powered interactive C++ learning platform that provides personalized codin
 - **AI Integration**: Google Gemini AI API
 - **Deployment**: Docker containers on Railway
 
-
-** Platform**: [Visit Learning C++ Platform]([https://your-railway-app-url.railway.app](https://learningapp-web-production.up.railway.app/))
+** Platform**: https://learningapp-web-production.up.railway.app/
 
 ## Architecture
 
